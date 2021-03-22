@@ -11,9 +11,10 @@ Additionally, you can use the `-h` flag to show all options.
 - `-quiet` to disable logging output to `stdout`.
 
 ### Implemented Scripts
-- `filter-videos`
-- `filter-images`
-- `flatten` (experimental, only supports `depth=1`)
+- `filter-videos` moves all videos to a new directory
+- `filter-images` moves all images to a new directory
+- `flatten` moves all images or videos from subdirectories to a new directory (experimental, only supports `depth=1`)
+- `batch-download` download files from a textfile of urls asynchronously.
 
 ### Compiling
 Requires `go 1.16`.  
