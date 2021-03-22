@@ -3,6 +3,7 @@ package pkg
 import (
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 )
 
@@ -53,4 +54,14 @@ func CopyFile(src, dst string) error {
 		return err
 	}
 	return nil
+}
+
+// DownloadFile downloads the given url.
+func DownloadFile(url string) ([]byte, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	return io.ReadAll(resp.Body)
 }
