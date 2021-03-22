@@ -1,4 +1,4 @@
-# batch-download
+# batch-download ⬇️ ⬇️ ⬇️
 Asynchronously downloads all files in a text file (new line separated).  
 Automatically checks for `CRLF` or `LF`.  
 

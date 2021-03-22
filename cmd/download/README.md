@@ -1,4 +1,4 @@
-# download
+# download ⬇️
 Download all URLS to the current directory.
 
 ## Usage

@@ -1,4 +1,4 @@
-# filter-images
+# filter-images 📷
 Moves all images in the current directory to a new directory.  
 Looks for the following file extensions:  
 `".jpg", ".jpeg", ".png", ".bmp", ".gif"`

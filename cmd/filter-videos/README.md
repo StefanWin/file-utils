@@ -1,4 +1,4 @@
-# filter-videos
+# filter-videos 📹
 Moves all videos in the current directory to a new directory.  
 Looks for the following file extensions:  
 `".mp4", ".avi", ".webm", ".mkv", ".flv", ".wmv"`
