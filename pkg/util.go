@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"fmt"
+	"io"
 	"os"
 )
 
@@ -31,6 +32,25 @@ func MoveFile(src, dst string) error {
 	err := os.Rename(src, dst)
 	if err != nil {
 		return fmt.Errorf("failed to move file : %s -> %s", src, dst)
+	}
+	return nil
+}
+
+// CopyFile copies the src file to the dst.
+func CopyFile(src, dst string) error {
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer srcFile.Close()
+	dstFile, err := os.Create(dst)
+	if err != nil {
+		return nil
+	}
+	defer dstFile.Close()
+	_, err = io.Copy(srcFile, dstFile)
+	if err != nil {
+		return err
 	}
 	return nil
 }
