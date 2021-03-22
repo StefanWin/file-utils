@@ -54,6 +54,6 @@ func main() {
 
 	elapsed := time.Since(start)
 
-	logInfo("successfully moved %d images to %s in %s\n", count, directory, elapsed)
+	logInfo("successfully moved %d videos to %s in %s\n", count, directory, elapsed)
 
 }
