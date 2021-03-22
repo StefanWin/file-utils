@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
+	"path/filepath"
 	"time"
 
 	"github.com/StefanWin/file-util/v2/pkg"
@@ -44,8 +44,8 @@ func main() {
 	logInfo("found %d image files\n", count)
 
 	for _, f := range files {
-		src := fmt.Sprintf("./%s", f.Name())
-		dst := fmt.Sprintf("%s/%s", directory, f.Name())
+		src := filepath.Join("./", f.Name())
+		dst := filepath.Join(directory, f.Name())
 		if err := pkg.MoveFile(src, dst); err != nil {
 			log.Fatal(err)
 		}
