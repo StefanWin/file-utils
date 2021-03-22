@@ -14,6 +14,14 @@ Additionally, you can use the `-h` flag to show all options.
 - `filter-videos`
 - `filter-images`
 
+### Compiling
+Requires `go 1.16`.  
+- `cd /cmd/<script_name>`
+- `go build` to create a binary in the current directory
+- `go install` to install the binary to `$GOPATH/bin`
+
+Easiest solution is to add `$GOPATH/bin` to your `$PATH`.
+
 
 ## Code 
 The `pkg` directory contains general utility functions for directory filters.  
