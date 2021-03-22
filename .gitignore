@@ -1,4 +1,7 @@
 
+# custom
+*.txt 
+
 # Created by https://www.toptal.com/developers/gitignore/api/go,images,video
 # Edit at https://www.toptal.com/developers/gitignore?templates=go,images,video
 
