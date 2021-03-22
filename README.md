@@ -13,6 +13,7 @@ Additionally, you can use the `-h` flag to show all options.
 ### Implemented Scripts
 - `filter-videos`
 - `filter-images`
+- `flatten` (experimental, only supports `depth=1`)
 
 ### Compiling
 Requires `go 1.16`.  
