@@ -36,13 +36,13 @@ func main() {
 	flag.BoolVar(&quiet, "quiet", false, "Disable logging output.")
 
 	var filePath string
-	flag.StringVar(&filePath, "file", "", "path to the file containing the urls. new line separated.")
+	flag.StringVar(&filePath, "file", "./urls", "path to the file containing the urls. new line separated.")
 
 	var outputDir string
 	flag.StringVar(&outputDir, "output", "./", "path to the output directory")
 
 	var threadCount int
-	flag.IntVar(&threadCount, "threads", 3, "number of threads to use. default 3.")
+	flag.IntVar(&threadCount, "threads", 3, "number of threads to use.")
 
 	flag.Parse()
 
