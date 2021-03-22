@@ -1,6 +1,6 @@
 # flatten
 Finds all files of a certain type in subdirectories and copies them to a new directory.  
-### Warning: not fully stable yet, only supports depth of 1, output not configurable
+### ❗ Warning: not fully stable yet, only supports depth of 1, output not configurable ❗
 
 ## Usage
 `$ > flatten -quiet -images`  
