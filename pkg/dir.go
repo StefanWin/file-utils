@@ -106,8 +106,7 @@ func ListFilesInDirectory(directory string) ([]os.DirEntry, error) {
 // ListDirectories lists all sub-directories for the given directory.
 func ListDirectoriesInDirectory(directory string) ([]os.DirEntry, error) {
 	return ListFilesInDirectoryOptions(directory, &FilterOptions{
-		FilterDirectories: true,
-		FilterFuncs:       []DirEntryFilterFunc{onlyDirFunc},
+		FilterFuncs: []DirEntryFilterFunc{onlyDirFunc},
 	})
 }
 
