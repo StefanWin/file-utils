@@ -38,28 +38,22 @@ func MoveFile(src, dst string) error {
 }
 
 // CopyFile copies the src file to the dst.
-// adopted from https://opensource.com/article/18/6/copying-files-go
 func CopyFile(src, dst string) error {
-	sourceFileStat, err := os.Stat(src)
+	srcFile, err := os.Open(src)
 	if err != nil {
 		return err
 	}
-	if !sourceFileStat.Mode().IsRegular() {
-		return fmt.Errorf("%s is not a regular file", src)
+	defer srcFile.Close()
+	dstFile, err := os.Create(dst)
+	if err != nil {
+		return nil
 	}
-	source, err := os.Open(src)
+	defer dstFile.Close()
+	_, err = io.Copy(dstFile, srcFile) // why is this (dst, src) instead of (src, dst)???
 	if err != nil {
 		return err
 	}
-	defer source.Close()
-
-	destination, err := os.Create(dst)
-	if err != nil {
-		return err
-	}
-	defer destination.Close()
-	_, err = io.Copy(destination, source)
-	return err
+	return nil
 }
 
 // DownloadFile downloads the given url.
