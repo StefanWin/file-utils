@@ -5,10 +5,8 @@ Generally moves files with a specific mime-type to a directory.
 ## Scripts
 The utility scripts do not delete the files but move them to a directory.  
 
-All scripts take two base commandline-arguments.  
-Additionally, you can use the `-h` flag to show all options.
-- `-dir` to set the target directory (surrounded with quotes).
-- `-quiet` to disable logging output to `stdout`.
+All scripts take the `-quiet` argument to disable logging output.  
+Additionally, you can use the `-h` flag to show all options.  
 
 ### Implemented Scripts
 - `filter-videos` moves all videos to a new directory
