@@ -16,6 +16,7 @@ Additionally, you can use the `-h` flag to show all options.
 - `flatten` moves all images or videos from subdirectories to a new directory (experimental, only supports `depth=1`)
 - `batch-download` download files from a textfile of urls asynchronously.
 - `download` downloads all urls given via cli args.
+- `filter-images-ar` filters images based on their aspect ratio
 
 ### Compiling
 Requires `go 1.16`.  
