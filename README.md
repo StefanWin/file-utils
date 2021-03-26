@@ -22,6 +22,7 @@ Requires `go 1.16`.
 - `cd /cmd/<script_name>`
 - `go build` to create a binary in the current directory
 - `go install` to install the binary to `$GOPATH/bin`
+- alternatively, install scripts with `go install ./...` from projects root directory
 
 Easiest solution is to add `$GOPATH/bin` to your `$PATH`.
 
