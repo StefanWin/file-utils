@@ -2,7 +2,9 @@ package pkg
 
 import (
 	"image"
+	_ "image/gif"
 	_ "image/jpeg"
+	_ "image/png"
 	"os"
 )
 
