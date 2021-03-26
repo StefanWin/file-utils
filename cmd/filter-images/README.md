@@ -10,4 +10,5 @@ Looks for the following file extensions:
 ## Arguments
 
 - `-quiet` disables logging output
+- `-verbose` enables per-file logging output
 - `-dir (default: "./images")` sets the target directory. Will create it if it does not exist.

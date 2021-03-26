@@ -12,7 +12,7 @@ import (
 	"github.com/StefanWin/file-util/v2/pkg"
 )
 
-func worker(id int, jobs <-chan string, results chan<- error, output string, logger func(format string, v ...interface{})) {
+func worker(id int, jobs <-chan string, results chan<- error, output string, logger func(format string, v ...interface{}), verboseLogger func(format string, v ...interface{})) {
 	for url := range jobs {
 		filename := filepath.Base(url)
 		path := filepath.Join(output, filename)
@@ -23,7 +23,7 @@ func worker(id int, jobs <-chan string, results chan<- error, output string, log
 		if err := os.WriteFile(path, data, 0644); err != nil {
 			results <- fmt.Errorf("thread<%d> failed to write %s", id, path)
 		}
-		logger("thread<%d> downloaded %s => %s\n", id, url, path)
+		verboseLogger("thread<%d> downloaded %s => %s\n", id, url, path)
 		results <- nil
 	}
 }
@@ -34,6 +34,9 @@ func main() {
 
 	var quiet bool
 	flag.BoolVar(&quiet, "quiet", false, "Disable logging output.")
+
+	var verbose bool
+	flag.BoolVar(&verbose, "verbose", false, "Enable per file logging output.")
 
 	var filePath string
 	flag.StringVar(&filePath, "file", "./urls", "path to the file containing the urls. new line separated.")
@@ -48,6 +51,12 @@ func main() {
 
 	logInfo := func(format string, v ...interface{}) {
 		if !quiet {
+			log.Printf(format, v...)
+		}
+	}
+
+	logVerbose := func(format string, v ...interface{}) {
+		if !quiet && verbose {
 			log.Printf(format, v...)
 		}
 	}
@@ -78,7 +87,7 @@ func main() {
 	results := make(chan error, count)
 
 	for i := 1; i <= threadCount; i++ {
-		go worker(i, jobs, results, outputDir, logInfo)
+		go worker(i, jobs, results, outputDir, logInfo, logVerbose)
 	}
 
 	logInfo("created %d threads\n", threadCount)

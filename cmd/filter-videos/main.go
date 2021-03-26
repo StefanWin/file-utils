@@ -16,12 +16,21 @@ func main() {
 	var quiet bool
 	flag.BoolVar(&quiet, "quiet", false, "Disable output")
 
+	var verbose bool
+	flag.BoolVar(&verbose, "verbose", false, "Enable per file logging output.")
+
 	var directory string
 	flag.StringVar(&directory, "dir", "./videos", "The directory to move the videos to. Will create if not exists.")
 	flag.Parse()
 
 	logInfo := func(format string, v ...interface{}) {
 		if !quiet {
+			log.Printf(format, v...)
+		}
+	}
+
+	logVerbose := func(format string, v ...interface{}) {
+		if !quiet && verbose {
 			log.Printf(format, v...)
 		}
 	}
@@ -49,7 +58,7 @@ func main() {
 		if err := pkg.MoveFile(src, dst); err != nil {
 			log.Fatal(err)
 		}
-		logInfo("moved :: %s => %s\n", src, dst)
+		logVerbose("moved :: %s => %s\n", src, dst)
 	}
 
 	elapsed := time.Since(start)

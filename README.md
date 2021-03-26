@@ -5,7 +5,8 @@ Generally moves files with a specific mime-type to a directory.
 ## Scripts
 The utility scripts do not delete the files but move them to a directory.  
 
-All scripts take the `-quiet` argument to disable logging output.  
+All scripts take the `-quiet` argument to disable logging output,  
+and the `-verbose` argument to enable per-file logging output.  
 Additionally, you can use the `-h` flag to show all options.  
 
 ### Implemented Scripts

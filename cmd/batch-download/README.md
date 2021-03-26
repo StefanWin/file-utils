@@ -7,6 +7,7 @@ Automatically checks for `CRLF` or `LF`.
 
 ## Arguments
 - `-quiet` disables logging output
+- `-verbose` enables per-file logging output
 - `-file (default: "./urls.txt")` specifies the file with the urls
 - `-output (default: "./")` specifies an output directory
 - `-threads (default: 3)` number of threads to use

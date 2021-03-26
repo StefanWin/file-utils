@@ -9,5 +9,6 @@ i.e. widescreen (`width >= height`) and portrait (`width < height`).
 
 ## Arguments
 - `-quiet` disables logging output
+- `-verbose` enables per-file logging output
 - `-portraitDir (default : "./portrait")` sets the target directory for portrait images.
 - `-wideScreenDir (default : "./widescreen")` sets the target directory for widescreen images.

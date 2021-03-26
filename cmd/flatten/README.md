@@ -8,5 +8,6 @@ Finds all files of a certain type in subdirectories and copies them to a new dir
 
 ## Arguments
 - `-quiet` disables logging output
+- `-verbose` enables per-file logging output
 - `-images (default)` only copies images. Can't be used with `-videos`.
 - `-videes` only copies videos. Can't be used with `-images`.

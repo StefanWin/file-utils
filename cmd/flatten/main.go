@@ -17,6 +17,9 @@ func main() {
 	var quiet bool
 	flag.BoolVar(&quiet, "quiet", false, "Disable output")
 
+	var verbose bool
+	flag.BoolVar(&verbose, "verbose", false, "Enable per file logging output.")
+
 	var images bool
 	flag.BoolVar(&images, "images", true, "Only use images")
 
@@ -31,6 +34,12 @@ func main() {
 
 	logInfo := func(format string, v ...interface{}) {
 		if !quiet {
+			log.Printf(format, v...)
+		}
+	}
+
+	logVerbose := func(format string, v ...interface{}) {
+		if !quiet && verbose {
 			log.Printf(format, v...)
 		}
 	}
@@ -89,7 +98,7 @@ func main() {
 		if err := pkg.CopyFile(src, dst); err != nil {
 			log.Fatal(err)
 		}
-		logInfo("copied :: %s => %s\n", src, dst)
+		logVerbose("copied :: %s => %s\n", src, dst)
 	}
 
 	elapsed := time.Since(start)
