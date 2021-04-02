@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	videoExts = []string{".mp4", ".avi", ".webm", ".mkv", ".flv", ".wmv"}
+	videoExts = []string{".mp4", ".avi", ".webm", ".mkv", ".flv", ".wmv", ".ts"}
 	imageExts = []string{".jpg", ".jpeg", ".png", ".bmp", ".gif"}
 
 	extRegex = regexp.MustCompile(".[a-zA-Z0-9]+")
