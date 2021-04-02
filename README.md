@@ -16,6 +16,7 @@ Additionally, you can use the `-h` flag to show all options.
 - `batch-download` download files from a textfile of urls asynchronously.
 - `download` downloads all urls given via cli args.
 - `filter-images-ar` filters images based on their aspect ratio
+- `gpu-convert` converts all videos with Nvidia's `h264_nvenc` encoder.
 
 ### Compiling
 Requires `go 1.16`.  
