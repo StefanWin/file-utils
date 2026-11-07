@@ -23,13 +23,13 @@ func main() {
 
 	flag.Parse()
 
-	logInfo := func(format string, v ...interface{}) {
+	logInfo := func(format string, v ...any) {
 		if !quiet {
 			log.Printf(format, v...)
 		}
 	}
 
-	logVerbose := func(format string, v ...interface{}) {
+	logVerbose := func(format string, v ...any) {
 		if !quiet && verbose {
 			log.Printf(format, v...)
 		}
@@ -44,7 +44,14 @@ func main() {
 
 	logInfo("found %d video files\n", count)
 
+	converted := 0
 	for _, f := range files {
+		base := strings.TrimSuffix(f.Name(), filepath.Ext(f.Name()))
+		// skip outputs from a previous run
+		if strings.HasSuffix(base, "_conv") {
+			logVerbose("skipping already converted %s\n", f.Name())
+			continue
+		}
 		cmd := exec.Command(
 			"ffmpeg",
 			"-hwaccel", "cuda",
@@ -52,7 +59,7 @@ func main() {
 			"-i", f.Name(),
 			"-c:v", "h264_nvenc",
 			"-c:a", "copy",
-			strings.Replace(f.Name(), filepath.Ext(f.Name()), "_conv.mp4", -1),
+			base+"_conv.mp4",
 			"-y",
 		)
 		logVerbose("running %s\n", strings.Join(cmd.Args, " "))
@@ -63,10 +70,11 @@ func main() {
 		if err := cmd.Run(); err != nil {
 			log.Fatal(err)
 		}
+		converted++
 	}
 
 	elapsed := time.Since(start)
 
-	logInfo("successfully converted %d videos in %s\n", count, elapsed)
+	logInfo("successfully converted %d videos in %s\n", converted, elapsed)
 
 }

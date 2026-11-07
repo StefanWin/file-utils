@@ -23,13 +23,13 @@ func main() {
 	flag.StringVar(&directory, "dir", "./videos", "The directory to move the videos to. Will create if not exists.")
 	flag.Parse()
 
-	logInfo := func(format string, v ...interface{}) {
+	logInfo := func(format string, v ...any) {
 		if !quiet {
 			log.Printf(format, v...)
 		}
 	}
 
-	logVerbose := func(format string, v ...interface{}) {
+	logVerbose := func(format string, v ...any) {
 		if !quiet && verbose {
 			log.Printf(format, v...)
 		}

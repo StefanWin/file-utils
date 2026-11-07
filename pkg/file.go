@@ -1,28 +1,21 @@
 package pkg
 
 import (
-	"regexp"
+	"slices"
+	"strings"
 )
 
 var (
 	videoExts = []string{".mp4", ".avi", ".webm", ".mkv", ".flv", ".wmv", ".ts"}
 	imageExts = []string{".jpg", ".jpeg", ".png", ".bmp", ".gif"}
-
-	extRegex = regexp.MustCompile(".[a-zA-Z0-9]+")
 )
 
-// Check if an extension is a image extension.
+// IsImageEXT reports whether ext (e.g. ".jpg", ".JPG") is an image extension.
 func IsImageEXT(ext string) bool {
-	if extRegex.MatchString(ext) {
-		return contains(imageExts, ext)
-	}
-	return false
+	return slices.Contains(imageExts, strings.ToLower(ext))
 }
 
-// Check if an extension is a video extension.
+// IsVideoEXT reports whether ext (e.g. ".mp4", ".MP4") is a video extension.
 func IsVideoEXT(ext string) bool {
-	if extRegex.MatchString(ext) {
-		return contains(videoExts, ext)
-	}
-	return false
+	return slices.Contains(videoExts, strings.ToLower(ext))
 }

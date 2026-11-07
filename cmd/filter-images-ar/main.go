@@ -27,13 +27,13 @@ func main() {
 
 	flag.Parse()
 
-	logInfo := func(format string, v ...interface{}) {
+	logInfo := func(format string, v ...any) {
 		if !quiet {
 			log.Printf(format, v...)
 		}
 	}
 
-	logVerbose := func(format string, v ...interface{}) {
+	logVerbose := func(format string, v ...any) {
 		if !quiet && verbose {
 			log.Printf(format, v...)
 		}
@@ -46,6 +46,9 @@ func main() {
 
 	count := len(files)
 	logInfo("found %d image files\n", count)
+	if count == 0 {
+		return
+	}
 
 	if err := pkg.EnsureDir(portraitDir); err != nil {
 		log.Fatal(err)
@@ -70,7 +73,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		aspectRationSum += float64(w / h)
+		aspectRationSum += float64(w) / float64(h)
 		if w >= h {
 			dst = filepath.Join("./", wideScreenDir, f.Name())
 			wideScreenCount += 1
