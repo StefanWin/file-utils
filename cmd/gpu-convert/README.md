@@ -1,6 +1,7 @@
 # gpu-convert
 Convert all video files in the current directory with 
 Nvidia's ```h264_nvenc``` encoder.  
+Writes `<name>_conv.mp4` next to each input and skips `*_conv` files from earlier runs.  
 
 ### ❗ Warning: Requires a Nvidia GPU ❗
 

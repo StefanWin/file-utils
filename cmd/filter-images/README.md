@@ -1,7 +1,7 @@
 # filter-images 📷
 Moves all images in the current directory to a new directory.  
 Looks for the following file extensions:  
-`".jpg", ".jpeg", ".png", ".bmp", ".gif"`
+`".jpg", ".jpeg", ".png", ".bmp", ".gif"` (case-insensitive)
 
 ## Usage
 `$ > filter-images -quiet -dir="./pics"`  
