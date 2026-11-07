@@ -6,8 +6,53 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/StefanWin/file-util/v2/pkg"
+	"github.com/StefanWin/file-utils/pkg"
 )
+
+type stats struct {
+	wide, portrait int
+	avgAspectRatio float64
+}
+
+// sortImages copies every image in srcDir into wideDir (width >= height) or portraitDir.
+// onCopy is called for each copied image. The target directories are only created if there are images.
+func sortImages(srcDir, wideDir, portraitDir string, onCopy func(w, h int, src, dst string)) (stats, error) {
+	var s stats
+	files, err := pkg.ListImagesInDirectory(srcDir)
+	if err != nil || len(files) == 0 {
+		return s, err
+	}
+	for _, dir := range []string{portraitDir, wideDir} {
+		if err := pkg.EnsureDir(dir); err != nil {
+			return s, err
+		}
+	}
+
+	aspectRatioSum := 0.0
+	for _, f := range files {
+		src := filepath.Join(srcDir, f.Name())
+		w, h, err := pkg.GetImageBounds(src)
+		if err != nil {
+			return s, err
+		}
+		aspectRatioSum += float64(w) / float64(h)
+		dst := filepath.Join(portraitDir, f.Name())
+		if w >= h {
+			dst = filepath.Join(wideDir, f.Name())
+			s.wide++
+		} else {
+			s.portrait++
+		}
+		if err := pkg.CopyFile(src, dst); err != nil {
+			return s, err
+		}
+		if onCopy != nil {
+			onCopy(w, h, src, dst)
+		}
+	}
+	s.avgAspectRatio = aspectRatioSum / float64(len(files))
+	return s, nil
+}
 
 func main() {
 
@@ -39,58 +84,21 @@ func main() {
 		}
 	}
 
-	files, err := pkg.ListImagesInDirectory(".")
+	s, err := sortImages(".", wideScreenDir, portraitDir, func(w, h int, src, dst string) {
+		logVerbose("copied :: (%dx%d) %s => %s\n", w, h, src, dst)
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	count := len(files)
-	logInfo("found %d image files\n", count)
+	count := s.wide + s.portrait
 	if count == 0 {
+		logInfo("found no image files\n")
 		return
 	}
 
-	if err := pkg.EnsureDir(portraitDir); err != nil {
-		log.Fatal(err)
-	}
-
-	logInfo("created directorty %s\n", portraitDir)
-
-	if err := pkg.EnsureDir(wideScreenDir); err != nil {
-		log.Fatal(err)
-	}
-
-	logInfo("created directorty %s\n", wideScreenDir)
-
-	wideScreenCount := 0
-	portraitCount := 0
-	aspectRationSum := 0.0
-
-	for _, f := range files {
-		src := filepath.Join("./", f.Name())
-		dst := ""
-		w, h, err := pkg.GetImageBounds(src)
-		if err != nil {
-			log.Fatal(err)
-		}
-		aspectRationSum += float64(w) / float64(h)
-		if w >= h {
-			dst = filepath.Join("./", wideScreenDir, f.Name())
-			wideScreenCount += 1
-		} else {
-			dst = filepath.Join("./", portraitDir, f.Name())
-			portraitCount += 1
-		}
-		if err := pkg.CopyFile(src, dst); err != nil {
-			log.Fatal(err)
-		}
-		logVerbose("copied :: (%dx%d) %s => %s\n", w, h, src, dst)
-	}
-
-	avgAspectRatio := aspectRationSum / float64(count)
-	logInfo("average aspect ratio : %f\n", avgAspectRatio)
+	logInfo("average aspect ratio : %f\n", s.avgAspectRatio)
 
 	elapsed := time.Since(start)
-	logInfo("successfully filtered %d (%d widescreen, %d portrait) in %s\n", count, wideScreenCount, portraitCount, elapsed)
-
+	logInfo("successfully filtered %d (%d widescreen, %d portrait) in %s\n", count, s.wide, s.portrait, elapsed)
 }

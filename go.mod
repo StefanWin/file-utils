@@ -1,3 +1,3 @@
-module github.com/StefanWin/file-util/v2
+module github.com/StefanWin/file-utils
 
 go 1.27.0

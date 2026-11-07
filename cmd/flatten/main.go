@@ -1,15 +1,93 @@
 package main
 
 import (
+	"errors"
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"time"
 
-	"github.com/StefanWin/file-util/v2/pkg"
+	"github.com/StefanWin/file-utils/pkg"
 )
+
+type mode int
+
+const (
+	modeAll mode = iota
+	modeImages
+	modeVideos
+)
+
+// parseMode resolves the -images/-videos flags.
+// -videos on its own implies -images=false, since -images defaults to true.
+func parseMode(images, videos, imagesSet bool) (mode, error) {
+	if videos && !imagesSet {
+		images = false
+	}
+	switch {
+	case images && videos:
+		return 0, errors.New("can not use both 'images' and 'videos'")
+	case images:
+		return modeImages, nil
+	case videos:
+		return modeVideos, nil
+	default:
+		return modeAll, nil
+	}
+}
+
+// targetDir is the name of the directory the files are copied to.
+func (m mode) targetDir() string {
+	switch m {
+	case modeImages:
+		return "images"
+	case modeVideos:
+		return "videos"
+	default:
+		return "all"
+	}
+}
+
+// keep reports whether the entry is a media file this mode copies.
+func (m mode) keep(e os.DirEntry) bool {
+	ext := pkg.GetDirEntryEXT(e)
+	switch m {
+	case modeImages:
+		return pkg.IsImageEXT(ext)
+	case modeVideos:
+		return pkg.IsVideoEXT(ext)
+	default:
+		return pkg.IsImageEXT(ext) || pkg.IsVideoEXT(ext)
+	}
+}
+
+// collect returns the paths of all matching files in the direct subdirectories of root,
+// skipping the target directory itself.
+func collect(root string, m mode) ([]string, error) {
+	directories, err := pkg.ListDirectoriesInDirectory(root)
+	if err != nil {
+		return nil, err
+	}
+	var paths []string
+	for _, dir := range directories {
+		if dir.Name() == m.targetDir() {
+			continue
+		}
+		subDirPath := filepath.Join(root, dir.Name())
+		files, err := pkg.ListFilesInDirectoryOptions(subDirPath, &pkg.FilterOptions{
+			FilterDirectories: true,
+			FilterFuncs:       []pkg.DirEntryFilterFunc{m.keep},
+		})
+		if err != nil {
+			return nil, err
+		}
+		for _, f := range files {
+			paths = append(paths, filepath.Join(subDirPath, f.Name()))
+		}
+	}
+	return paths, nil
+}
 
 func main() {
 
@@ -29,15 +107,16 @@ func main() {
 
 	flag.Parse()
 
-	setFlags := map[string]bool{}
-	flag.Visit(func(f *flag.Flag) { setFlags[f.Name] = true })
-	// -videos on its own implies -images=false
-	if videos && !setFlags["images"] {
-		images = false
-	}
+	imagesSet := false
+	flag.Visit(func(f *flag.Flag) {
+		if f.Name == "images" {
+			imagesSet = true
+		}
+	})
 
-	if images && videos {
-		log.Fatal(fmt.Errorf("can not use both 'images' and 'videos'"))
+	m, err := parseMode(images, videos, imagesSet)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	logInfo := func(format string, v ...any) {
@@ -52,13 +131,7 @@ func main() {
 		}
 	}
 
-	targetDirectory := "./all"
-	if images {
-		targetDirectory = "./images"
-	}
-	if videos {
-		targetDirectory = "./videos"
-	}
+	targetDirectory := filepath.Join(".", m.targetDir())
 
 	logInfo("target directory => %s\n", targetDirectory)
 
@@ -66,54 +139,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	logInfo("created directory => %s\n", targetDirectory)
-
-	directories, err := pkg.ListDirectoriesInDirectory(".")
+	paths, err := collect(".", m)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	logInfo("found %d subdirectories\n", len(directories))
-
-	// keep only the media files the selected mode asks for
-	keep := func(e os.DirEntry) bool {
-		ext := pkg.GetDirEntryEXT(e)
-		switch {
-		case images:
-			return pkg.IsImageEXT(ext)
-		case videos:
-			return pkg.IsVideoEXT(ext)
-		default:
-			return pkg.IsImageEXT(ext) || pkg.IsVideoEXT(ext)
-		}
-	}
-
-	var paths []string
-
-	for _, dir := range directories {
-		subDirPath := filepath.Join("./", dir.Name())
-		// avoid duplicates if target already exists
-		if fmt.Sprintf("./%s", subDirPath) == targetDirectory {
-			logInfo("skipping target directory since already exists")
-			continue
-		}
-		files, err := pkg.ListFilesInDirectoryOptions(subDirPath, &pkg.FilterOptions{
-			FilterDirectories: true,
-			FilterFuncs:       []pkg.DirEntryFilterFunc{keep},
-		})
-		if err != nil {
-			log.Fatal(err)
-		}
-		logInfo("found %d target files in %s\n", len(files), dir.Name())
-		for _, f := range files {
-			paths = append(paths, filepath.Join("./", dir.Name(), f.Name()))
-		}
-	}
-
 	logInfo("found %d total target files\n", len(paths))
 
-	for _, p := range paths {
-		src := p
+	for _, src := range paths {
 		dst := filepath.Join(targetDirectory, filepath.Base(src))
 		if err := pkg.CopyFile(src, dst); err != nil {
 			log.Fatal(err)
@@ -123,5 +156,5 @@ func main() {
 
 	elapsed := time.Since(start)
 
-	logInfo("successfully moved %d to %s in %s\n", len(paths), targetDirectory, elapsed)
+	logInfo("successfully copied %d files to %s in %s\n", len(paths), targetDirectory, elapsed)
 }

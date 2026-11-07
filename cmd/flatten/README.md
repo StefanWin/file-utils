@@ -9,5 +9,6 @@ Finds all files of a certain type in subdirectories and copies them to a new dir
 ## Arguments
 - `-quiet` disables logging output
 - `-verbose` enables per-file logging output
-- `-images (default)` only copies images. Can't be used with `-videos`.
-- `-videes` only copies videos. Can't be used with `-images`.
+- `-images (default)` only copies images. Can't be explicitly combined with `-videos`.
+- `-videos` only copies videos. Implies `-images=false`.
+- `-images=false` without `-videos` copies both images and videos to `./all`.

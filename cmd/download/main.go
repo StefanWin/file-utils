@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/StefanWin/file-util/v2/pkg"
+	"github.com/StefanWin/file-utils/pkg"
 )
 
 func main() {

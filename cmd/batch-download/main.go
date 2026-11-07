@@ -7,27 +7,59 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
-	"github.com/StefanWin/file-util/v2/pkg"
+	"github.com/StefanWin/file-utils/pkg"
 )
 
-func worker(id int, jobs <-chan string, results chan<- error, output string, logger func(format string, v ...any), verboseLogger func(format string, v ...any)) {
-	for url := range jobs {
-		filename := filepath.Base(url)
-		path := filepath.Join(output, filename)
-		data, err := pkg.DownloadFile(url)
-		if err != nil {
-			results <- fmt.Errorf("thread<%d> failed to download %s: %w", id, url, err)
-			continue
-		}
-		if err := os.WriteFile(path, data, 0644); err != nil {
-			results <- fmt.Errorf("thread<%d> failed to write %s: %w", id, path, err)
-			continue
-		}
-		verboseLogger("thread<%d> downloaded %s => %s\n", id, url, path)
-		results <- nil
+// parseURLs splits the url file into urls: one per line, blank lines and \r\n handled.
+func parseURLs(data []byte) []string {
+	return strings.Fields(string(data))
+}
+
+// downloadAll downloads every url into outputDir using the given number of workers.
+// onDone is called after each successful download. It returns one error per failed url.
+func downloadAll(urls []string, outputDir string, workers int, onDone func(url, path string)) []error {
+	workers = max(workers, 1)
+	jobs := make(chan string)
+	var (
+		mu   sync.Mutex
+		errs []error
+		wg   sync.WaitGroup
+	)
+	for range workers {
+		wg.Go(func() {
+			for url := range jobs {
+				path := filepath.Join(outputDir, filepath.Base(url))
+				err := download(url, path)
+				mu.Lock()
+				if err != nil {
+					errs = append(errs, err)
+				} else if onDone != nil {
+					onDone(url, path)
+				}
+				mu.Unlock()
+			}
+		})
 	}
+	for _, url := range urls {
+		jobs <- url
+	}
+	close(jobs)
+	wg.Wait()
+	return errs
+}
+
+func download(url, path string) error {
+	data, err := pkg.DownloadFile(url)
+	if err != nil {
+		return fmt.Errorf("failed to download %s: %w", url, err)
+	}
+	if err := os.WriteFile(path, data, 0644); err != nil {
+		return fmt.Errorf("failed to write %s: %w", path, err)
+	}
+	return nil
 }
 
 func main() {
@@ -69,48 +101,27 @@ func main() {
 		log.Fatal(err)
 	}
 
-	logInfo("created %s\n", outputDir)
-
 	data, err := os.ReadFile(filePath)
 	if err != nil {
-		log.Fatal(fmt.Errorf("failed to load file %s", filePath))
+		log.Fatal(fmt.Errorf("failed to load file %s: %w", filePath, err))
 	}
 
-	logInfo("reading urls from %s\n", filePath)
-
-	// one url per line; Fields also handles \r\n and skips blank lines
-	urls := strings.Fields(string(data))
-
+	urls := parseURLs(data)
 	count := len(urls)
 
 	logInfo("found %d urls in %s\n", count, filePath)
 
-	jobs := make(chan string, count)
-	results := make(chan error, count)
-
-	for i := 1; i <= threadCount; i++ {
-		go worker(i, jobs, results, outputDir, logInfo, logVerbose)
+	errs := downloadAll(urls, outputDir, threadCount, func(url, path string) {
+		logVerbose("downloaded %s => %s\n", url, path)
+	})
+	for _, err := range errs {
+		log.Println(err)
 	}
 
-	logInfo("created %d threads\n", threadCount)
-
-	for _, url := range urls {
-		jobs <- url
-	}
-	close(jobs)
-
-	failed := 0
-	for j := 1; j <= count; j++ {
-		if err := <-results; err != nil {
-			failed++
-			log.Println(err)
-		}
-	}
 	elapsed := time.Since(start)
 
-	logInfo("downloaded %d of %d files in %s\n", count-failed, count, elapsed)
-	if failed > 0 {
+	logInfo("downloaded %d of %d files in %s\n", count-len(errs), count, elapsed)
+	if len(errs) > 0 {
 		os.Exit(1)
 	}
-
 }
