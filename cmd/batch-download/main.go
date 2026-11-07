@@ -12,16 +12,18 @@ import (
 	"github.com/StefanWin/file-util/v2/pkg"
 )
 
-func worker(id int, jobs <-chan string, results chan<- error, output string, logger func(format string, v ...interface{}), verboseLogger func(format string, v ...interface{})) {
+func worker(id int, jobs <-chan string, results chan<- error, output string, logger func(format string, v ...any), verboseLogger func(format string, v ...any)) {
 	for url := range jobs {
 		filename := filepath.Base(url)
 		path := filepath.Join(output, filename)
 		data, err := pkg.DownloadFile(url)
 		if err != nil {
-			results <- fmt.Errorf("tread<%d> failed to download : %s", id, url)
+			results <- fmt.Errorf("thread<%d> failed to download %s: %w", id, url, err)
+			continue
 		}
 		if err := os.WriteFile(path, data, 0644); err != nil {
-			results <- fmt.Errorf("thread<%d> failed to write %s", id, path)
+			results <- fmt.Errorf("thread<%d> failed to write %s: %w", id, path, err)
+			continue
 		}
 		verboseLogger("thread<%d> downloaded %s => %s\n", id, url, path)
 		results <- nil
@@ -49,13 +51,13 @@ func main() {
 
 	flag.Parse()
 
-	logInfo := func(format string, v ...interface{}) {
+	logInfo := func(format string, v ...any) {
 		if !quiet {
 			log.Printf(format, v...)
 		}
 	}
 
-	logVerbose := func(format string, v ...interface{}) {
+	logVerbose := func(format string, v ...any) {
 		if !quiet && verbose {
 			log.Printf(format, v...)
 		}
@@ -76,8 +78,8 @@ func main() {
 
 	logInfo("reading urls from %s\n", filePath)
 
-	str := strings.Replace(string(data), "\r\n", "\n", -1) // fuck windows
-	urls := strings.Split(str, "\n")
+	// one url per line; Fields also handles \r\n and skips blank lines
+	urls := strings.Fields(string(data))
 
 	count := len(urls)
 
@@ -97,13 +99,18 @@ func main() {
 	}
 	close(jobs)
 
+	failed := 0
 	for j := 1; j <= count; j++ {
 		if err := <-results; err != nil {
+			failed++
 			log.Println(err)
 		}
 	}
 	elapsed := time.Since(start)
 
-	logInfo("downloaded %d files in %s\n", count, elapsed)
+	logInfo("downloaded %d of %d files in %s\n", count-failed, count, elapsed)
+	if failed > 0 {
+		os.Exit(1)
+	}
 
 }

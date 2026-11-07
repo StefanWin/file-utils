@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -21,24 +22,31 @@ func main() {
 	flag.BoolVar(&verbose, "verbose", false, "Enable per file logging output.")
 
 	var images bool
-	flag.BoolVar(&images, "images", true, "Only use images")
+	flag.BoolVar(&images, "images", true, "Only use images (default unless -videos is set)")
 
 	var videos bool
 	flag.BoolVar(&videos, "videos", false, "Only use videos")
 
 	flag.Parse()
 
+	setFlags := map[string]bool{}
+	flag.Visit(func(f *flag.Flag) { setFlags[f.Name] = true })
+	// -videos on its own implies -images=false
+	if videos && !setFlags["images"] {
+		images = false
+	}
+
 	if images && videos {
 		log.Fatal(fmt.Errorf("can not use both 'images' and 'videos'"))
 	}
 
-	logInfo := func(format string, v ...interface{}) {
+	logInfo := func(format string, v ...any) {
 		if !quiet {
 			log.Printf(format, v...)
 		}
 	}
 
-	logVerbose := func(format string, v ...interface{}) {
+	logVerbose := func(format string, v ...any) {
 		if !quiet && verbose {
 			log.Printf(format, v...)
 		}
@@ -67,6 +75,19 @@ func main() {
 
 	logInfo("found %d subdirectories\n", len(directories))
 
+	// keep only the media files the selected mode asks for
+	keep := func(e os.DirEntry) bool {
+		ext := pkg.GetDirEntryEXT(e)
+		switch {
+		case images:
+			return pkg.IsImageEXT(ext)
+		case videos:
+			return pkg.IsVideoEXT(ext)
+		default:
+			return pkg.IsImageEXT(ext) || pkg.IsVideoEXT(ext)
+		}
+	}
+
 	var paths []string
 
 	for _, dir := range directories {
@@ -78,8 +99,7 @@ func main() {
 		}
 		files, err := pkg.ListFilesInDirectoryOptions(subDirPath, &pkg.FilterOptions{
 			FilterDirectories: true,
-			FilterVideos:      !videos,
-			FilterImages:      !images,
+			FilterFuncs:       []pkg.DirEntryFilterFunc{keep},
 		})
 		if err != nil {
 			log.Fatal(err)

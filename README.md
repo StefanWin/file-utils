@@ -19,7 +19,7 @@ Additionally, you can use the `-h` flag to show all options.
 - `gpu-convert` converts all videos with Nvidia's `h264_nvenc` encoder.
 
 ### Compiling
-Requires `go 1.16`.  
+Requires Go 1.27 or newer.  
 - `cd /cmd/<script_name>`
 - `go build` to create a binary in the current directory
 - `go install` to install the binary to `$GOPATH/bin`
